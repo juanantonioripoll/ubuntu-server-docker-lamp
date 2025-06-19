@@ -1,8 +1,7 @@
-FROM php:8.2-apache
+FROM php:8.3-apache
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Habilita extensiones necesarias en un solo paso optimizado
 RUN apt-get update && apt-get install -y \
         sendmail \
         libpng-dev \
@@ -11,6 +10,8 @@ RUN apt-get update && apt-get install -y \
         libonig-dev \
         libjpeg-dev \
         libfreetype6-dev \
+        unzip \
+        curl \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install \
         mysqli \
@@ -22,7 +23,9 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Habilita el módulo de Apache rewrite
+# Instalar Composer globalmente
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 RUN a2enmod rewrite
 
 # Opcional: ajusta permisos del directorio web
