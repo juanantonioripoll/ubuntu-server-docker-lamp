@@ -1,20 +1,23 @@
-version: "3.1"
+version: "3.8"
+
 services:
   db:
-    image: mysql
-    ports:
-      - "3306:3306"
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: appdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
     volumes:
-      - ./dump:/docker-entrypoint-initdb.d
-      - ./conf:/etc/mysql/conf.d
-      - persistent:/var/lib/mysql
+      - db_data:/var/lib/mysql
     networks:
-      - default
+      - lampnet
 
   www:
     build: .
+    container_name: php_apache
     ports:
       - "80:80"
     volumes:
@@ -22,20 +25,24 @@ services:
     depends_on:
       - db
     networks:
-      - default
+      - lampnet
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
+    container_name: pma
+    restart: always
     ports:
-      - "8000:80"
+      - "8080:80"
     environment:
       PMA_HOST: db
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
     depends_on:
       - db
     networks:
-      - default
+      - lampnet
 
 volumes:
-  persistent:
+  db_data:
+
+networks:
+  lampnet:
