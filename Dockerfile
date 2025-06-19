@@ -1,19 +1,35 @@
 FROM php:8.2-apache
+
 ARG DEBIAN_FRONTEND=noninteractive
-RUN docker-php-ext-install mysqli
-# Include alternative DB driver
-# RUN docker-php-ext-install pdo
-# RUN docker-php-ext-install pdo_mysql
-RUN apt-get update \
-    && apt-get install -y sendmail libpng-dev \
-    && apt-get install -y libzip-dev \
-    && apt-get install -y zlib1g-dev \
-    && apt-get install -y libonig-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install zip
 
-RUN docker-php-ext-install mbstring
-RUN docker-php-ext-install zip
-RUN docker-php-ext-install gd
+# Habilita extensiones necesarias en un solo paso optimizado
+RUN apt-get update && apt-get install -y \
+        sendmail \
+        libpng-dev \
+        libzip-dev \
+        zlib1g-dev \
+        libonig-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install \
+        mysqli \
+        pdo \
+        pdo_mysql \
+        zip \
+        mbstring \
+        gd \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
+# Habilita el módulo de Apache rewrite
 RUN a2enmod rewrite
+
+# Opcional: ajusta permisos del directorio web
+# RUN chown -R www-data:www-data /var/www/html
+
+# Opcional: copia configuración personalizada
+# COPY ./apache-config.conf /etc/apache2/sites-available/000-default.conf
+
+# Puerto por defecto
+EXPOSE 80
